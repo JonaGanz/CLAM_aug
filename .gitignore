@@ -4,6 +4,7 @@ notebooks
 
 /checkpoints
 /Rebuttal
+/data
 
 *.csv
 *.ipynb
@@ -15,3 +16,4 @@ notebooks
 *.h5
 *.pt
 *.pth
+*.svs

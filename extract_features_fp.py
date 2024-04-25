@@ -58,10 +58,12 @@ parser.add_argument('--model_name', type=str, default='resnet50_trunc', choices=
 parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--no_auto_skip', default=False, action='store_true')
 parser.add_argument('--target_patch_size', type=int, default=224)
+parser.add_argument('--num_workers', type = int, help='number of workers to use during feature extraction', default=8)
 args = parser.parse_args()
 
 
 if __name__ == '__main__':
+	torch.set_float32_matmul_precision('medium')
 	print('initializing dataset')
 	csv_path = args.csv_path
 	if csv_path is None:
@@ -80,7 +82,7 @@ if __name__ == '__main__':
 	model = model.to(device)
 	total = len(bags_dataset)
 
-	loader_kwargs = {'num_workers': 8, 'pin_memory': True} if device.type == "cuda" else {}
+	loader_kwargs = {'num_workers': args.num_workers, 'pin_memory': True} if device.type == "cuda" else {}
 
 	for bag_candidate_idx in tqdm(range(total)):
 		slide_id = bags_dataset[bag_candidate_idx].split(args.slide_ext)[0]
