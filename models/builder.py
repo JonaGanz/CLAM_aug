@@ -54,6 +54,11 @@ def get_encoder(model_name, target_img_size=224):
         from conch.open_clip_custom import create_model_from_pretrained
         model, _ = create_model_from_pretrained("conch_ViT-B-16", CONCH_CKPT_PATH)
         model.forward = partial(model.encode_image, proj_contrast=False, normalize=False)
+    elif model_name == 'transpath':
+        model = ctranspath()
+        model.head = torch.nn.Identity()
+        td = torch.load('checkpoints/CTransPath/ctranspath.pth')
+        model.load_state_dict(td['model'], strict=True)    
     else:
         raise NotImplementedError('model {} not implemented'.format(model_name))
     
