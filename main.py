@@ -180,7 +180,7 @@ elif args.task == 'task_2_tumor_subtyping':
 elif args.task == 'MEN':
     args.n_classes=244
     dataset = Generic_MIL_Dataset(csv_path = 'Rebuttal/labels_MEN.csv',
-                            data_dir= args.data_root_dir[0],
+                            data_dir= args.data_root_dir,
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
@@ -191,7 +191,7 @@ elif args.task == 'MEN':
 elif args.task == 'LUAD':
     args.n_classes=226
     dataset = Generic_MIL_Dataset(csv_path = 'Rebuttal/labels_LUAD.csv',
-                            data_dir= args.data_root_dir[0],
+                            data_dir= args.data_root_dir,
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
@@ -202,7 +202,7 @@ elif args.task == 'LUAD':
 elif args.task == 'LSCC':
     args.n_classes=209
     dataset = Generic_MIL_Dataset(csv_path = 'Rebuttal/labels_LSCC.csv',
-                            data_dir= args.data_root_dir[0],
+                            data_dir= args.data_root_dir,
                             shuffle = False, 
                             seed = args.seed, 
                             print_info = True,
