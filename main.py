@@ -88,7 +88,7 @@ parser.add_argument('--split_dir', type=str, default=None,
                     +'instead of infering from the task and label_frac argument (default: None)')
 parser.add_argument('--log_data', action='store_true', default=False, help='log data using tensorboard')
 parser.add_argument('--testing', action='store_true', default=False, help='debugging tool')
-parser.add_argument('--early_stopping', action='store_true', default=False, help='enable early stopping')
+parser.add_argument('--early_stopping', action='store_true', default=True, help='enable early stopping')
 parser.add_argument('--opt', type=str, choices = ['adam', 'sgd'], default='adam')
 parser.add_argument('--drop_out', type=float, default=0.25, help='dropout')
 parser.add_argument('--bag_loss', type=str, choices=['svm', 'ce'], default='ce',
@@ -98,7 +98,7 @@ parser.add_argument('--model_type', type=str, choices=['clam_sb', 'clam_mb', 'mi
 parser.add_argument('--exp_code', type=str, help='experiment code for saving results')
 parser.add_argument('--weighted_sample', action='store_true', default=False, help='enable weighted sampling')
 parser.add_argument('--model_size', type=str, choices=['small', 'big'], default='small', help='size of model, does not affect mil')
-parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'task_2_tumor_subtyping'])
+parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'task_2_tumor_subtyping', 'MEN', 'LUAD','LSCC'])
 ### CLAM specific options
 parser.add_argument('--no_inst_cluster', action='store_true', default=False,
                      help='disable instance-level clustering')
@@ -109,6 +109,9 @@ parser.add_argument('--subtyping', action='store_true', default=False,
 parser.add_argument('--bag_weight', type=float, default=0.7,
                     help='clam: weight coefficient for bag-level loss (default: 0.7)')
 parser.add_argument('--B', type=int, default=8, help='numbr of positive/negative patches to sample for clam')
+parser.add_argument('--early_stopping_patience', type = int, default = 5 )
+parser.add_argument('--min_epochs', type = int, default = 10)
+
 args = parser.parse_args()
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -171,6 +174,39 @@ elif args.task == 'task_2_tumor_subtyping':
                             seed = args.seed, 
                             print_info = True,
                             label_dict = {'subtype_1':0, 'subtype_2':1, 'subtype_3':2},
+                            patient_strat= False,
+                            ignore=[])
+    
+elif args.task == 'MEN':
+    args.n_classes=244
+    dataset = Generic_MIL_Dataset(csv_path = 'Rebuttal/labels_MEN.csv',
+                            data_dir= args.data_root_dir[0],
+                            shuffle = False, 
+                            seed = args.seed, 
+                            print_info = True,
+                            label_dict = {i: i for i in range(args.n_classes)},
+                            patient_strat= False,
+                            ignore=[])
+    
+elif args.task == 'LUAD':
+    args.n_classes=226
+    dataset = Generic_MIL_Dataset(csv_path = 'Rebuttal/labels_LUAD.csv',
+                            data_dir= args.data_root_dir[0],
+                            shuffle = False, 
+                            seed = args.seed, 
+                            print_info = True,
+                            label_dict = {i: i for i in range(args.n_classes)},
+                            patient_strat= False,
+                            ignore=[])
+    
+elif args.task == 'LSCC':
+    args.n_classes=209
+    dataset = Generic_MIL_Dataset(csv_path = 'Rebuttal/labels_LSCC.csv',
+                            data_dir= args.data_root_dir[0],
+                            shuffle = False, 
+                            seed = args.seed, 
+                            print_info = True,
+                            label_dict = {i: i for i in range(args.n_classes)},
                             patient_strat= False,
                             ignore=[])
 
