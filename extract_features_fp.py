@@ -59,6 +59,7 @@ parser.add_argument('--batch_size', type=int, default=256)
 parser.add_argument('--no_auto_skip', default=False, action='store_true')
 parser.add_argument('--target_patch_size', type=int, default=224)
 parser.add_argument('--num_workers', type = int, help='number of workers to use during feature extraction', default=8)
+parser.add_argument('--stain_augmentation', default=False, action='store_true')
 args = parser.parse_args()
 
 
@@ -76,7 +77,7 @@ if __name__ == '__main__':
 	os.makedirs(os.path.join(args.feat_dir, 'h5_files'), exist_ok=True)
 	dest_files = os.listdir(os.path.join(args.feat_dir, 'pt_files'))
 
-	model, img_transforms = get_encoder(args.model_name, target_img_size=args.target_patch_size)
+	model, img_transforms = get_encoder(args.model_name, target_img_size=args.target_patch_size, stain_augmentation=args.stain_augmentation)
 			
 	_ = model.eval()
 	model = model.to(device)
