@@ -5,7 +5,7 @@ from .timm_wrapper import TimmCNNEncoder
 import torch
 from utils.constants import MODEL2CONSTANTS
 from utils.transform_utils import get_eval_transforms
-from .ctran import ctranspath
+
 
 def has_CONCH():
     HAS_CONCH = False
@@ -37,7 +37,7 @@ def has_UNI():
         print(e)
     return HAS_UNI, UNI_CKPT_PATH
         
-def get_encoder(model_name, target_img_size=224):
+def get_encoder(model_name, target_img_size=224, stain_augmentation=False):
     print('loading model checkpoint')
     if model_name == 'resnet50_trunc':
         model = TimmCNNEncoder()
@@ -56,6 +56,7 @@ def get_encoder(model_name, target_img_size=224):
         model, _ = create_model_from_pretrained("conch_ViT-B-16", CONCH_CKPT_PATH)
         model.forward = partial(model.encode_image, proj_contrast=False, normalize=False)
     elif model_name == 'transpath':
+        from .ctran import ctranspath
         model = ctranspath()
         model.head = torch.nn.Identity()
         td = torch.load('checkpoints/CTransPath/ctranspath.pth')
@@ -67,6 +68,7 @@ def get_encoder(model_name, target_img_size=224):
     constants = MODEL2CONSTANTS[model_name]
     img_transforms = get_eval_transforms(mean=constants['mean'],
                                          std=constants['std'],
-                                         target_img_size = target_img_size)
+                                         target_img_size = target_img_size,
+                                         stain_augmentation = stain_augmentation)
 
     return model, img_transforms
