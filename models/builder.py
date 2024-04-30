@@ -5,6 +5,7 @@ from .timm_wrapper import TimmCNNEncoder
 import torch
 from utils.constants import MODEL2CONSTANTS
 from utils.transform_utils import get_eval_transforms
+from .ctran import ctranspath
 
 def has_CONCH():
     HAS_CONCH = False
