@@ -176,6 +176,8 @@ elif args.task == 'task_2_tumor_subtyping':
                             label_dict = {'subtype_1':0, 'subtype_2':1, 'subtype_3':2},
                             patient_strat= False,
                             ignore=[])
+    if args.model_type in ['clam_sb', 'clam_mb']:
+        assert args.subtyping 
     
 elif args.task == 'MEN':
     args.n_classes=244
@@ -210,8 +212,7 @@ elif args.task == 'LSCC':
                             patient_strat= False,
                             ignore=[])
 
-    if args.model_type in ['clam_sb', 'clam_mb']:
-        assert args.subtyping 
+
         
 else:
     raise NotImplementedError
