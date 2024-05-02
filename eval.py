@@ -39,7 +39,12 @@ parser.add_argument('--fold', type=int, default=-1, help='single fold to evaluat
 parser.add_argument('--micro_average', action='store_true', default=False, 
                     help='use micro_average instead of macro_avearge for multiclass AUC')
 parser.add_argument('--split', type=str, choices=['train', 'val', 'test', 'all'], default='test')
-parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'task_2_tumor_subtyping'])
+parser.add_argument('--task', type=str, choices=['task_1_tumor_vs_normal',  'task_2_tumor_subtyping', 'LSCC','LUAD','MEN'])
+parser.add_argument('--save_logits', action='store_true', default=False,)
+parser.add_argument('--drop_out', action='store_true', default=False, 
+                    help='whether model uses dropout')
+parser.add_argument('--embed_dim', type=int, default=1024, help='embedding dimension for CLAM models (default: 1024)')
+
 args = parser.parse_args()
 
 device=torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -88,15 +93,36 @@ elif args.task == 'task_2_tumor_subtyping':
                             patient_strat= False,
                             ignore=[])
 
-# elif args.task == 'tcga_kidney_cv':
-#     args.n_classes=3
-#     dataset = Generic_MIL_Dataset(csv_path = 'dataset_csv/tcga_kidney_clean.csv',
-#                             data_dir= os.path.join(args.data_root_dir, 'tcga_kidney_20x_features'),
-#                             shuffle = False, 
-#                             print_info = True,
-#                             label_dict = {'TCGA-KICH':0, 'TCGA-KIRC':1, 'TCGA-KIRP':2},
-#                             patient_strat= False,
-#                             ignore=['TCGA-SARC'])
+elif args.task == 'MEN':
+    args.n_classes=244
+    dataset = Generic_MIL_Dataset(csv_path = '/data/jonathan/Rebuttal/labels_MEN.csv',
+                            data_dir= args.data_root_dir,
+                            shuffle = False, 
+                            print_info = True,
+                            label_dict = {i: i for i in range(args.n_classes)},
+                            patient_strat= False,
+                            ignore=[])
+    
+elif args.task == 'LUAD':
+    args.n_classes=226
+    dataset = Generic_MIL_Dataset(csv_path = 'Rebuttal/labels_LUAD.csv',
+                            data_dir= args.data_root_dir,
+                            shuffle = False, 
+                            print_info = True,
+                            label_dict = {i: i for i in range(args.n_classes)},
+                            patient_strat= False,
+                            ignore=[])
+    
+elif args.task == 'LSCC':
+    args.n_classes=209
+    dataset = Generic_MIL_Dataset(csv_path = 'Rebuttal/labels_LSCC.csv',
+                            data_dir= args.data_root_dir,
+                            shuffle = False, 
+                            print_info = True,
+                            label_dict = {i: i for i in range(args.n_classes)},
+                            patient_strat= False,
+                            ignore=[])
+
 
 else:
     raise NotImplementedError
@@ -128,11 +154,15 @@ if __name__ == "__main__":
             csv_path = '{}/splits_{}.csv'.format(args.splits_dir, folds[ckpt_idx])
             datasets = dataset.return_splits(from_id=False, csv_path=csv_path)
             split_dataset = datasets[datasets_id[args.split]]
-        model, patient_results, test_error, auc, df  = eval(split_dataset, args, ckpt_paths[ckpt_idx])
+        model, patient_results, test_error, auc, df  = eval(split_dataset, args, ckpt_paths[ckpt_idx], save_logits=args.save_logits)
         all_results.append(all_results)
         all_auc.append(auc)
         all_acc.append(1-test_error)
         df.to_csv(os.path.join(args.save_dir, 'fold_{}.csv'.format(folds[ckpt_idx])), index=False)
+        
+        if args.save_logits:
+            with open(os.path.join(args.save_dir, 'fold_{}_logits_df.p'.format(folds[ckpt_idx])), 'wb') as f:
+                pickle.dump(patient_results, f)
 
     final_df = pd.DataFrame({'folds': folds, 'test_auc': all_auc, 'test_acc': all_acc})
     if len(folds) != args.k:
