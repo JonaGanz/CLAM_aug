@@ -45,17 +45,17 @@ def initiate_model(args, ckpt_path, device='cuda'):
     _ = model.eval()
     return model
 
-def eval(dataset, args, ckpt_path):
+def eval(dataset, args, ckpt_path, save_logits=False):
     model = initiate_model(args, ckpt_path)
     
     print('Init Loaders')
     loader = get_simple_loader(dataset)
-    patient_results, test_error, auc, df, _ = summary(model, loader, args)
+    patient_results, test_error, auc, df, _ = summary(model, loader, args, save_logits=save_logits)
     print('test_error: ', test_error)
     print('auc: ', auc)
     return model, patient_results, test_error, auc, df
 
-def summary(model, loader, args):
+def summary(model, loader, args, save_logits=False):
     acc_logger = Accuracy_Logger(n_classes=args.n_classes)
     model.eval()
     test_loss = 0.
@@ -76,12 +76,18 @@ def summary(model, loader, args):
         acc_logger.log(Y_hat, label)
         
         probs = Y_prob.cpu().numpy()
+        y_hat = Y_hat.item()
+        if save_logits:
+            logits = logits.cpu()
 
         all_probs[batch_idx] = probs
         all_labels[batch_idx] = label.item()
         all_preds[batch_idx] = Y_hat.item()
         
-        patient_results.update({slide_id: {'slide_id': np.array(slide_id), 'prob': probs, 'label': label.item()}})
+        if save_logits:
+            patient_results.update({slide_id: {'slide_id': np.array(slide_id), 'prob': probs, 'label': label.item(), 'preds': logits, 'Y_hat': y_hat}})
+        else:
+            patient_results.update({slide_id: {'slide_id': np.array(slide_id), 'prob': probs, 'label': label.item()}})
         
         error = calculate_error(Y_hat, label)
         test_error += error
